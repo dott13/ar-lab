@@ -9,21 +9,19 @@
     <style>
         body { margin: 0; overflow: hidden; }
     </style>
-
 </head>
+
 <body>
 
 <script>
     window.visionSeen = false;
 
-    // Raven click logic
     AFRAME.registerComponent('raven-listener', {
         init: function () {
             const el = this.el;
 
-            el.addEventListener('click', function () {
+            el.addEventListener('click', () => {
                 if (!window.visionSeen) {
-                    console.log("Raven clicked! Unlocking story state.");
                     window.visionSeen = true;
 
                     el.setAttribute('visible', false);
@@ -39,11 +37,8 @@
         }
     });
 
-    // Marker debug logic
     AFRAME.registerComponent('marker-debug', {
-        schema: {
-            markerId: { type: 'string' }
-        },
+        schema: { markerId: { type: 'string' } },
 
         init: function () {
             this.markerID = this.data.markerId;
@@ -74,17 +69,22 @@
 <!-- SCENE -->
 <a-scene 
     embedded
+    vr-mode-ui="enabled: false"
     arjs="trackingMethod: best; sourceType: webcam; debugUIEnabled: false;"
+    renderer="logarithmicDepthBuffer: true;"
     raycaster="objects: [raycaster-target];"
     cursor="fuse: false; rayOrigin: mouse;"
 >
 
     <!-- Assets -->
-    <a-assets>
-        <a-asset-item id="throne-model" src="/iron_throne.glb"></a-asset-item>
-        <a-asset-item id="bran-model" src="/bran_stark.glb"></a-asset-item>
-        <a-asset-item id="raven-model" src="/raven.glb"></a-asset-item>
-        <a-asset-item id="scroll-model" src="/scroll.glb"></a-asset-item>
+    <a-assets timeout="60000">
+
+        <!-- FIX: Use relative paths so they load instead of download -->
+        <a-asset-item id="throne-model" src="iron_throne.glb"></a-asset-item>
+        <a-asset-item id="bran-model" src="bran_stark.glb"></a-asset-item>
+        <a-asset-item id="raven-model" src="raven.glb"></a-asset-item>
+        <a-asset-item id="scroll-model" src="scroll.glb"></a-asset-item>
+
     </a-assets>
 
     <!-- Debug Text -->
@@ -99,29 +99,18 @@
     </a-entity>
 
 
-    <!-- MARKER A — STARK SIGIL -->
-    <a-nft
-        type="nft"
-        url="stark_sigil"
-        emitevents="true"
-        id="marker-a"
-    >
+    <!-- MARKER A -->
+    <a-nft type="nft" url="stark_sigil" emitevents="true" id="marker-a">
         <a-gltf-model
             src="#throne-model"
             scale="0.1 0.1 0.1"
             rotation="-90 0 0"
-            position="0 0 0"
         ></a-gltf-model>
     </a-nft>
 
 
-    <!-- MARKER B — RAVEN SIGIL -->
-    <a-nft
-        type="nft"
-        url="raven_sigil"
-        emitevents="true"
-        id="marker-b"
-    >
+    <!-- MARKER B -->
+    <a-nft type="nft" url="raven_sigil" emitevents="true" id="marker-b">
 
         <a-gltf-model
             id="bran-entity"
@@ -156,43 +145,32 @@
     </a-nft>
 
 
-    <!-- MARKER C — KING'S SEAL -->
-    <a-nft
-        type="nft"
-        url="kings_seal"
-        emitevents="true"
-        id="marker-c"
-    >
+    <!-- MARKER C -->
+    <a-nft type="nft" url="kings_seal" emitevents="true" id="marker-c">
         <a-gltf-model
             id="scroll-entity"
             src="#scroll-model"
             scale="0.1 0.1 0.1"
             rotation="-90 0 0"
-            position="0 0 0"
             visible="false"
         ></a-gltf-model>
     </a-nft>
 
 
-    <!-- Camera (only ONE!) -->
     <a-entity camera></a-entity>
 
 </a-scene>
 
 <script>
-    // Marker C logic (scroll appears only after raven click)
-    document.getElementById('marker-c').addEventListener('markerFound', function () {
+    document.getElementById('marker-c').addEventListener('markerFound', () => {
         const scroll = document.getElementById('scroll-entity');
 
         if (window.visionSeen) {
             scroll.setAttribute('visible', true);
-            console.log("Marker C Found: New Scenario Revealed!");
-        } else {
-            console.log("Marker C Found, but blocked until Raven interaction.");
         }
     });
 
-    document.getElementById('marker-c').addEventListener('markerLost', function () {
+    document.getElementById('marker-c').addEventListener('markerLost', () => {
         document.getElementById('scroll-entity').setAttribute('visible', false);
     });
 </script>
