@@ -2,77 +2,94 @@
 <html>
 <head>
     <title>Game of Thrones AR: The Vision of Bran</title>
+
     <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar-nft.js"></script>
 
     <style>
         body { margin: 0; overflow: hidden; }
     </style>
-    
-    </head>
-<body style="margin : 0px; overflow: hidden;">
 
-    <script>
-        window.visionSeen = false; 
-        AFRAME.registerComponent('raven-listener', {
-            init: function () {
-                const el = this.el; 
-                el.addEventListener('click', function (evt) {
-                    if (!window.visionSeen) { 
-                        console.log("Raven clicked! Unlocking new story state.");
-                        window.visionSeen = true;
-                        el.setAttribute('visible', false);
+</head>
+<body>
 
-                        const visionText = document.getElementById('vision-text');
-                        visionText.setAttribute('value', 'A Vision:\n"The ink is dry. The past is already written."\n- Bran the Broken');
-                        visionText.setAttribute('visible', true);
-                    }
-                });
+<script>
+    window.visionSeen = false;
+
+    // Raven click logic
+    AFRAME.registerComponent('raven-listener', {
+        init: function () {
+            const el = this.el;
+
+            el.addEventListener('click', function () {
+                if (!window.visionSeen) {
+                    console.log("Raven clicked! Unlocking story state.");
+                    window.visionSeen = true;
+
+                    el.setAttribute('visible', false);
+
+                    const visionText = document.getElementById('vision-text');
+                    visionText.setAttribute(
+                        'value',
+                        'A Vision:\n"The ink is dry. The past is already written."\n- Bran the Broken'
+                    );
+                    visionText.setAttribute('visible', true);
+                }
+            });
+        }
+    });
+
+    // Marker debug logic
+    AFRAME.registerComponent('marker-debug', {
+        schema: {
+            markerId: { type: 'string' }
+        },
+
+        init: function () {
+            this.markerID = this.data.markerId;
+            this.statusText = document.getElementById('debug-status');
+
+            const marker = document.getElementById(this.markerID);
+
+            marker.addEventListener('markerFound', () => {
+                this.statusText.setAttribute('value', `TRACKING ${this.markerID.toUpperCase()}: SUCCESS!`);
+                this.statusText.setAttribute('color', 'green');
+            });
+
+            marker.addEventListener('markerLost', () => {
+                this.statusText.setAttribute('value', `STATUS: Waiting for ${this.markerID.toUpperCase()}...`);
+                this.statusText.setAttribute('color', 'red');
+            });
+        },
+
+        tick: function () {
+            if (this.statusText.getAttribute('value') === 'STATUS: Loading Camera...') {
+                this.statusText.setAttribute('value', `STATUS: Waiting for ${this.markerID.toUpperCase()}...`);
             }
-        });
+        }
+    });
+</script>
 
-        AFRAME.registerComponent('marker-debug', {
-            init: function () {
-                this.markerID = this.data.markerId;
-                this.statusText = document.getElementById('debug-status');
-                
-                document.getElementById(this.markerID).addEventListener('markerFound', () => {
-                    this.statusText.setAttribute('value', `TRACKING ${this.markerID.toUpperCase()}: SUCCESS!`);
-                    this.statusText.setAttribute('color', 'green');
-                });
 
-                document.getElementById(this.markerID).addEventListener('markerLost', () => {
-                    this.statusText.setAttribute('value', `STATUS: Waiting for ${this.markerID.toUpperCase()}...`);
-                    this.statusText.setAttribute('color', 'red');
-                });
-            },
-            tick: function() {
-                 if (this.statusText.getAttribute('value') === 'STATUS: Loading Camera...') {
-                     this.statusText.setAttribute('value', `STATUS: Waiting for ${this.markerID.toUpperCase()}...`);
-                 }
-            },
-            schema: {
-                markerId: {type: 'string', default: 'marker-a'}
-            }
-        });
-    </script>
+<!-- SCENE -->
+<a-scene 
+    embedded
+    arjs="trackingMethod: best; sourceType: webcam; debugUIEnabled: false;"
+    raycaster="objects: [raycaster-target];"
+    cursor="fuse: false; rayOrigin: mouse;"
+>
 
-    <a-scene 
-        embedded 
-        arjs="trackingMethod: best; sourceType: webcam;debugUIEnabled: false;"
-        raycaster="objects: [raycaster-target];" 
-        cursor="fuse: false; rayOrigin: mouse;"
-    >
-    
-      <a-assets>
-          <a-asset-item id="throne-model" src="/iron_throne.glb"></a-asset-item>
-          <a-asset-item id="bran-model" src="/bran_stark.glb"></a-asset-item> 
-          <a-asset-item id="raven-model" src="/raven.glb"></a-asset-item>
-          <a-asset-item id="scroll-model" src="/scroll.glb"></a-asset-item>
-     </a-assets>
-    
+    <!-- Assets -->
+    <a-assets>
+        <a-asset-item id="throne-model" src="/iron_throne.glb"></a-asset-item>
+        <a-asset-item id="bran-model" src="/bran_stark.glb"></a-asset-item>
+        <a-asset-item id="raven-model" src="/raven.glb"></a-asset-item>
+        <a-asset-item id="scroll-model" src="/scroll.glb"></a-asset-item>
+    </a-assets>
+
+    <!-- Debug Text -->
     <a-entity marker-debug="markerId: marker-a">
-        <a-text 
+        <a-text
             id="debug-status"
             value="STATUS: Loading Camera..."
             color="red"
@@ -81,37 +98,51 @@
         ></a-text>
     </a-entity>
 
-    <a-nft type="nft" url="./stark_sigil" emitevents="true" id="marker-a">
-        <a-gltf-model 
-            id="empty-throne-entity"
+
+    <!-- MARKER A — STARK SIGIL -->
+    <a-nft
+        type="nft"
+        url="stark_sigil"
+        emitevents="true"
+        id="marker-a"
+    >
+        <a-gltf-model
             src="#throne-model"
-            scale="0.1 0.1 0.1" 
-            rotation="-90 0 0" 
+            scale="0.1 0.1 0.1"
+            rotation="-90 0 0"
             position="0 0 0"
         ></a-gltf-model>
     </a-nft>
 
-    <a-nft type="nft" url="./raven_sigil" emitevents="true" id="marker-b">
-        
-        <a-gltf-model 
-            id="bran-entity" 
-            src="#bran-model" 
-            scale="0.1 0.1 0.1" 
-            rotation="-90 0 0" 
+
+    <!-- MARKER B — RAVEN SIGIL -->
+    <a-nft
+        type="nft"
+        url="raven_sigil"
+        emitevents="true"
+        id="marker-b"
+    >
+
+        <a-gltf-model
+            id="bran-entity"
+            src="#bran-model"
+            scale="0.1 0.1 0.1"
+            rotation="-90 0 0"
             position="-0.5 0 0"
         ></a-gltf-model>
 
-        <a-gltf-model 
+        <a-gltf-model
             id="raven-entity"
             src="#raven-model"
-            raven-listener class="raycaster-target"
-            scale="0.05 0.05 0.05" 
-            rotation="-90 0 0" 
+            class="raycaster-target"
+            raven-listener
+            scale="0.05 0.05 0.05"
+            rotation="-90 0 0"
             position="0.5 0.5 0"
             visible="true"
         ></a-gltf-model>
 
-        <a-text 
+        <a-text
             id="vision-text"
             value="Tap the Raven to Receive the Vision..."
             color="black"
@@ -124,34 +155,47 @@
 
     </a-nft>
 
-    <a-nft type="nft" url="./kings_seal" emitevents="true" id="marker-c">
-        <a-gltf-model 
+
+    <!-- MARKER C — KING'S SEAL -->
+    <a-nft
+        type="nft"
+        url="kings_seal"
+        emitevents="true"
+        id="marker-c"
+    >
+        <a-gltf-model
             id="scroll-entity"
-            src="#scroll-model" 
-            scale="0.1 0.1 0.1" 
-            rotation="-90 0 0" 
+            src="#scroll-model"
+            scale="0.1 0.1 0.1"
+            rotation="-90 0 0"
             position="0 0 0"
-            visible="false" ></a-gltf-model>
+            visible="false"
+        ></a-gltf-model>
     </a-nft>
 
+
+    <!-- Camera (only ONE!) -->
     <a-entity camera></a-entity>
-    </a-scene>
 
-    <script>
-        document.getElementById('marker-c').addEventListener('markerFound', function () {
-            const scroll = document.getElementById('scroll-entity');
-            
-            if (window.visionSeen) {
-                scroll.setAttribute('visible', true);
-                console.log("Marker C Found: New Scenario Revealed! Grade 9 logic verified.");
-            } else {
-                console.log("Marker C Found, but object is hidden. Must complete the Raven interaction first.");
-            }
-        });
+</a-scene>
 
-        document.getElementById('marker-c').addEventListener('markerLost', function () {
-            document.getElementById('scroll-entity').setAttribute('visible', false);
-        });
-    </script>
+<script>
+    // Marker C logic (scroll appears only after raven click)
+    document.getElementById('marker-c').addEventListener('markerFound', function () {
+        const scroll = document.getElementById('scroll-entity');
+
+        if (window.visionSeen) {
+            scroll.setAttribute('visible', true);
+            console.log("Marker C Found: New Scenario Revealed!");
+        } else {
+            console.log("Marker C Found, but blocked until Raven interaction.");
+        }
+    });
+
+    document.getElementById('marker-c').addEventListener('markerLost', function () {
+        document.getElementById('scroll-entity').setAttribute('visible', false);
+    });
+</script>
+
 </body>
 </html>
