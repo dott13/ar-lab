@@ -8,6 +8,7 @@
 
     <style>
         body { margin: 0; overflow: hidden; }
+        /* Keeping the loader simple, as per your original code */
     </style>
 
 </head>
@@ -33,15 +34,15 @@
                         'value',
                         'A Vision:\n"The ink is dry. The past is already written."\n- Bran the Broken'
                     );
-                    // Adjust text position after the vision is revealed if needed
-                    visionText.setAttribute('position', '0 0 1.5');
+                    // Adjust text position after vision is revealed (large units)
+                    visionText.setAttribute('position', '0 0 120'); 
                     visionText.setAttribute('visible', true);
                 }
             });
         }
     });
 
-    // Marker debug logic
+    // Marker debug logic (no changes needed here)
     AFRAME.registerComponent('marker-debug', {
         schema: {
             markerId: { type: 'string' }
@@ -106,8 +107,8 @@
     >
         <a-gltf-model
             src="#throne-model"
-            scale="0.5 0.5 0.5"        rotation="-90 0 0"
-            position="0 0 0.1"        ></a-gltf-model>
+            scale="100 100 100"        rotation="-90 0 0"
+            position="0 0 10"          ></a-gltf-model>
     </a-nft>
 
 
@@ -121,7 +122,7 @@
         <a-gltf-model
             id="bran-entity"
             src="#bran-model"
-            scale="0.5 0.5 0.5"        rotation="-90 0 0"
+            scale="100 100 100"        rotation="-90 0 0"
             position="0 0 0"           ></a-gltf-model>
 
         <a-gltf-model
@@ -129,8 +130,8 @@
             src="#raven-model"
             class="raycaster-target"
             raven-listener
-            scale="0.2 0.2 0.2"        rotation="-90 0 0"
-            position="0 0 0.5"         visible="true"
+            scale="50 50 50"          rotation="-90 0 0"
+            position="0 0 50"         visible="true"
         ></a-gltf-model>
 
         <a-text
@@ -138,9 +139,8 @@
             value="Tap the Raven to Receive the Vision..."
             color="black"
             font="monoid"
-            width="2"
-            rotation="-90 0 0"
-            position="0 0 1.2"         visible="true"
+            width="200"              rotation="-90 0 0"
+            position="0 0 120"        visible="true"
         ></a-text>
 
     </a-nft>
@@ -155,8 +155,8 @@
         <a-gltf-model
             id="scroll-entity"
             src="#scroll-model"
-            scale="0.5 0.5 0.5"        rotation="-90 0 0"
-            position="0 0 0.1"        visible="false"
+            scale="150 150 150"        rotation="-90 0 0"
+            position="0 0 10"          visible="false"
         ></a-gltf-model>
     </a-nft>
 
