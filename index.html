@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Game of Thrones AR: The Vision of Bran</title>
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar-nft.js"></script>
+
+    <style>
+        body { margin: 0; overflow: hidden; }
+    </style>
+
+    <a-assets>
+        <a-asset-item id="throne-model" src="./assets/iron_throne.glb"></a-asset-item>
+        <a-asset-item id="bran-model" src="./assets/bran_stark.glb"></a-asset-item> 
+        <a-asset-item id="raven-model" src="./assets/raven.glb"></a-asset-item>
+        <a-asset-item id="scroll-model" src="./assets/scroll.glb"></a-asset-item>
+    </a-assets>
+</head>
+<body style="margin : 0px; overflow: hidden;">
+
+    <script>
+        window.visionSeen = false; 
+
+        // Component to handle the click/tap interaction on the Raven model
+        AFRAME.registerComponent('raven-listener', {
+            init: function () {
+                const el = this.el; 
+                
+                el.addEventListener('click', function (evt) {
+                    // Check if the raven hasn't been clicked yet
+                    if (!window.visionSeen) { 
+                        console.log("Raven clicked! Unlocking new story state.");
+
+                        // 1. Set the new state
+                        window.visionSeen = true;
+                        
+                        // 2. Hide the Raven (Interaction complete)
+                        el.setAttribute('visible', false);
+
+                        // 3. Update/Show the Vision text panel
+                        const visionText = document.getElementById('vision-text');
+                        visionText.setAttribute('value', 'A Vision:\n"The ink is dry. The past is already written."\n- Bran the Broken');
+                        visionText.setAttribute('visible', true);
+                    }
+                });
+            }
+        });
+    </script>
+
+    <a-scene 
+        embedded 
+        arjs='sourceType: webcam; debugUIEnabled: false;'
+        raycaster="objects: [raycaster-target];" 
+        cursor="fuse: false; rayOrigin: mouse;"
+    >
+    
+    <a-marker-camera type="nft" url="./markers/stark_sigil" emitevents="true" id="marker-a">
+        <a-gltf-model 
+            id="empty-throne-entity"
+            src="#throne-model"
+            scale="0.1 0.1 0.1" 
+            rotation="-90 0 0" 
+            position="0 0 0"
+        ></a-gltf-model>
+    </a-marker-camera>
+
+    <a-marker-camera type="nft" url=".markers/raven_sigil" emitevents="true" id="marker-b">
+        
+        <a-gltf-model 
+            id="bran-entity" 
+            src="#bran-model" 
+            scale="0.1 0.1 0.1" 
+            rotation="-90 0 0" 
+            position="-0.5 0 0"
+        ></a-gltf-model>
+
+        <a-gltf-model 
+            id="raven-entity"
+            src="#raven-model"
+            raven-listener          class="raycaster-target"  scale="0.05 0.05 0.05" 
+            rotation="-90 0 0" 
+            position="0.5 0.5 0"
+            visible="true"
+        ></a-gltf-model>
+
+        <a-text 
+            id="vision-text"
+            value="Tap the Raven to Receive the Vision..."
+            color="black"
+            font="monoid"
+            width="2"
+            rotation="-90 0 0"
+            position="0 1.5 0"
+            visible="true"
+        ></a-text>
+
+    </a-marker-camera>
+
+    <a-marker-camera type="nft" url="./markers/kings_seal" emitevents="true" id="marker-c">
+        <a-gltf-model 
+            id="scroll-entity"
+            src="#scroll-model" 
+            scale="0.1 0.1 0.1" 
+            rotation="-90 0 0" 
+            position="0 0 0"
+            visible="false" ></a-gltf-model>
+    </a-marker-camera>
+
+    <a-entity camera></a-entity>
+    </a-scene>
+
+    <script>
+        document.getElementById('marker-c').addEventListener('markerFound', function () {
+            const scroll = document.getElementById('scroll-entity');
+            
+            if (window.visionSeen) {
+                // Grade 9 Condition: Only reveal the new scenario if the interaction is complete!
+                scroll.setAttribute('visible', true);
+                console.log("Marker C Found: New Scenario Revealed! Grade 9 logic verified.");
+            } else {
+                console.log("Marker C Found, but object is hidden. Must complete the Raven interaction first.");
+                // Optional: You could make a text panel visible here saying "Return to the Raven."
+            }
+        });
+
+        document.getElementById('marker-c').addEventListener('markerLost', function () {
+            document.getElementById('scroll-entity').setAttribute('visible', false);
+        });
+    </script>
+</body>
+</html>
