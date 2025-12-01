@@ -8,24 +8,15 @@
     <style>
         body { margin: 0; overflow: hidden; }
     </style>
-
-    <a-assets>
-        <a-asset-item id="throne-model" src="./assets/iron_throne.glb"></a-asset-item>
-        <a-asset-item id="bran-model" src="./assets/bran_stark.glb"></a-asset-item> 
-        <a-asset-item id="raven-model" src="./assets/raven.glb"></a-asset-item>
-        <a-asset-item id="scroll-model" src="./assets/scroll.glb"></a-asset-item>
-    </a-assets>
-</head>
+    
+    </head>
 <body style="margin : 0px; overflow: hidden;">
 
     <script>
         window.visionSeen = false; 
-
-        // Component to handle the click/tap interaction on the Raven model
         AFRAME.registerComponent('raven-listener', {
             init: function () {
                 const el = this.el; 
-                
                 el.addEventListener('click', function (evt) {
                     if (!window.visionSeen) { 
                         console.log("Raven clicked! Unlocking new story state.");
@@ -40,9 +31,6 @@
             }
         });
 
-        // ======================================================================
-        // NEW DEBUG COMPONENT
-        // ======================================================================
         AFRAME.registerComponent('marker-debug', {
             init: function () {
                 this.markerID = this.data.markerId;
@@ -59,7 +47,6 @@
                 });
             },
             tick: function() {
-                // Initial check for camera/status load
                  if (this.statusText.getAttribute('value') === 'STATUS: Loading Camera...') {
                      this.statusText.setAttribute('value', `STATUS: Waiting for ${this.markerID.toUpperCase()}...`);
                  }
@@ -77,12 +64,19 @@
         cursor="fuse: false; rayOrigin: mouse;"
     >
     
+    <a-assets>
+        <a-asset-item id="throne-model" src="./assets/iron_throne.glb"></a-asset-item>
+        <a-asset-item id="bran-model" src="./assets/bran_stark.glb"></a-asset-item> 
+        <a-asset-item id="raven-model" src="./assets/raven.glb"></a-asset-item>
+        <a-asset-item id="scroll-model" src="./assets/scroll.glb"></a-asset-item>
+    </a-assets>
+    
     <a-entity marker-debug="markerId: marker-a">
         <a-text 
             id="debug-status"
             value="STATUS: Loading Camera..."
             color="red"
-            position="-1.5 1.7 -5"  /* Positioned high on the screen */
+            position="-1.5 1.7 -5"
             scale="0.8 0.8 0.8"
         ></a-text>
     </a-entity>
