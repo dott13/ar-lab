@@ -49,7 +49,7 @@
         }
     });
 
-    // ----------------------- KING’S SEAL LOGIC -----------------------
+    // ----------------------- KING'S SEAL LOGIC -----------------------
     AFRAME.registerComponent('kings-seal-logic', {
         init: function () {
             const marker = this.el;
@@ -116,8 +116,9 @@
         id="debug-status"
         value="STATUS: Loading Camera..."
         color="red"
-        position="-90 0 0"
-        scale="0.15 0.15 0.15"
+        position="0 0.4 -1"
+        scale="0.25 0.25 0.25"
+        align="center"
     ></a-text>
 
 
@@ -125,8 +126,8 @@
     <a-nft type="nft" url="stark_sigil" emitevents="true" id="marker-a" marker-debug="markerId: marker-a">
         <a-gltf-model
             src="#throne-model"
-            scale="0.08 0.08 0.08"
-            position="-90 0 0"
+            scale="0.3 0.3 0.3"
+            position="0 0 -0.5"
             rotation="0 0 0"
         ></a-gltf-model>
     </a-nft>
@@ -140,8 +141,8 @@
             <a-gltf-model
                 id="bran-entity"
                 src="#bran-model"
-                scale="0.1 0.1 0.1"
-                position="-90 0 0"
+                scale="0.25 0.25 0.25"
+                position="0 0 -0.5"
                 rotation="0 0 0"
             ></a-gltf-model>
 
@@ -149,8 +150,8 @@
                 id="raven-entity"
                 src="#raven-model"
                 class="raycaster-target"
-                scale="0.12 0.12 0.12"
-                position="-90 0 0"
+                scale="0.15 0.15 0.15"
+                position="0 0.3 -0.4"
                 rotation="0 0 0"
                 visible="true"
             ></a-gltf-model>
@@ -158,10 +159,11 @@
             <a-text
                 id="vision-text"
                 value="Tap the Raven to Receive the Vision..."
-                color="black"
-                width="1.4"
-                position="-90 0 0"
-                scale="0.12 0.12 0.12"
+                color="#FFD700"
+                width="1.5"
+                position="0 0.5 -0.5"
+                align="center"
+                wrapCount="30"
                 rotation="0 0 0"
                 visible="true"
             ></a-text>
@@ -183,9 +185,9 @@
         <a-gltf-model
             id="scroll-entity"
             src="#scroll-model"
-            scale="0.15 0.15 0.15"
-            position="-90 0 0"
-            rotation="0 0 0"
+            scale="0.3 0.3 0.3"
+            position="0 0 -0.5"
+            rotation="-15 0 0"
             visible="false"
         ></a-gltf-model>
     </a-nft>
