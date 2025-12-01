@@ -17,9 +17,6 @@
     // GLOBAL STATE FLAG: Tracks if the Raven interaction has occurred
     window.visionSeen = false;
 
-    // --- 1. RAVEN LISTENER Component (Marker B) ---
-    // NOTE: This logic has been changed to fire on 'markerFound' for debugging.
-    // The tap event is no longer required to set window.visionSeen = true.
     AFRAME.registerComponent('raven-listener', {
         init: function () {
             const el = this.el;
@@ -59,7 +56,6 @@
         }
     });
 
-    // --- 2. KING'S SEAL LOGIC Component (Marker C) ---
     AFRAME.registerComponent('kings-seal-logic', {
         init: function () {
             const marker = this.el;
@@ -146,7 +142,7 @@
     <a-nft type="nft" url="stark_sigil" emitevents="true" id="marker-a" marker-debug="markerId: marker-a">
         <a-gltf-model
             src="#throne-model"
-            scale="1 1 1" 
+            scale="75 75 75" 
             rotation="-90 0 0"
             position="0 0 0" 
         ></a-gltf-model>
@@ -159,7 +155,7 @@
             <a-gltf-model
                 id="bran-entity"
                 src="#bran-model"
-                scale="1 1 1" 
+                scale="75 75 75" 
                 rotation="-90 0 0"
                 position="-0.2 0 0" 
             ></a-gltf-model>
@@ -168,7 +164,7 @@
                 id="raven-entity"
                 src="#raven-model"
                 class="raycaster-target"
-                scale="0.5 0.5 0.5"             
+                scale="75 75 75"             
                 rotation="-90 0 0"
                 position="0 0.5 0"             
                 visible="true"
@@ -181,7 +177,7 @@
                 font="monoid"
                 width="2"
                 rotation="-90 0 0"
-                scale="0.15 0.15 0.15"            
+                scale="75 75 75"            
                 position="0 0.8 0"                
                 visible="true"
             ></a-text>
@@ -201,7 +197,7 @@
         <a-gltf-model
             id="scroll-entity"
             src="#scroll-model"
-            scale="1 1 1"
+            scale="75 75 75"
             rotation="-90 0 0"
             visible="false"
         ></a-gltf-model>
