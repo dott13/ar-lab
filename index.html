@@ -65,10 +65,10 @@
     >
     
       <a-assets>
-          <a-asset-item id="throne-model" src="assets/iron_throne.glb"></a-asset-item>
-          <a-asset-item id="bran-model" src="assets/bran_stark.glb"></a-asset-item> 
-          <a-asset-item id="raven-model" src="assets/raven.glb"></a-asset-item>
-          <a-asset-item id="scroll-model" src="assets/scroll.glb"></a-asset-item>
+          <a-asset-item id="throne-model" src="iron_throne.glb"></a-asset-item>
+          <a-asset-item id="bran-model" src="bran_stark.glb"></a-asset-item> 
+          <a-asset-item id="raven-model" src="raven.glb"></a-asset-item>
+          <a-asset-item id="scroll-model" src="scroll.glb"></a-asset-item>
      </a-assets>
     
     <a-entity marker-debug="markerId: marker-a">
@@ -81,7 +81,7 @@
         ></a-text>
     </a-entity>
 
-    <a-marker-camera type="nft" url="markers/stark_sigil" emitevents="true" id="marker-a">
+    <a-marker-camera type="nft" url="stark_sigil" emitevents="true" id="marker-a">
         <a-gltf-model 
             id="empty-throne-entity"
             src="#throne-model"
@@ -91,7 +91,7 @@
         ></a-gltf-model>
     </a-marker-camera>
 
-    <a-marker-camera type="nft" url="markers/raven_sigil" emitevents="true" id="marker-b">
+    <a-marker-camera type="nft" url="raven_sigil" emitevents="true" id="marker-b">
         
         <a-gltf-model 
             id="bran-entity" 
@@ -124,7 +124,7 @@
 
     </a-marker-camera>
 
-    <a-marker-camera type="nft" url="markers/kings_seal" emitevents="true" id="marker-c">
+    <a-marker-camera type="nft" url="kings_seal" emitevents="true" id="marker-c">
         <a-gltf-model 
             id="scroll-entity"
             src="#scroll-model" 
