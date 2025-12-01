@@ -16,6 +16,23 @@
 <script>
     window.visionSeen = false;
 
+    // ----------------------- MODEL LOAD CHECKER -----------------------
+    AFRAME.registerComponent('model-checker', {
+        schema: { modelName: { type: 'string' } },
+        
+        init: function () {
+            const modelName = this.data.modelName;
+            
+            this.el.addEventListener('model-loaded', () => {
+                console.log(`✓ ${modelName} loaded successfully`);
+            });
+            
+            this.el.addEventListener('model-error', (e) => {
+                console.error(`✗ ${modelName} failed to load:`, e);
+            });
+        }
+    });
+
     // ----------------------- RAVEN LISTENER -----------------------
     AFRAME.registerComponent('raven-listener', {
         init: function () {
@@ -82,11 +99,13 @@
             marker.addEventListener('markerFound', () => {
                 this.statusText.setAttribute('value', `TRACKING ${this.markerID.toUpperCase()}: SUCCESS!`);
                 this.statusText.setAttribute('color', 'green');
+                console.log(`${this.markerID} marker found!`);
             });
 
             marker.addEventListener('markerLost', () => {
                 this.statusText.setAttribute('value', `STATUS: Waiting for ${this.markerID.toUpperCase()}...`);
                 this.statusText.setAttribute('color', 'red');
+                console.log(`${this.markerID} marker lost`);
             });
         }
     });
@@ -124,12 +143,32 @@
 
     <!-- ========================= MARKER A (THRONE) ========================= -->
     <a-nft type="nft" url="stark_sigil" emitevents="true" id="marker-a" marker-debug="markerId: marker-a">
+        
+        <!-- Fallback box to test visibility -->
+        <a-box 
+            color="red" 
+            position="0 0.5 0" 
+            scale="0.3 0.3 0.3"
+            material="opacity: 0.5; transparent: true"
+        ></a-box>
+        
+        <!-- Throne model -->
         <a-gltf-model
             src="#throne-model"
-            scale="0.3 0.3 0.3"
-            position="0 0 -0.5"
+            scale="1 1 1"
+            position="0 0 0"
             rotation="0 0 0"
+            model-checker="modelName: Throne"
         ></a-gltf-model>
+        
+        <!-- Debug text on marker -->
+        <a-text
+            value="THRONE MARKER"
+            color="white"
+            position="0 1 0"
+            scale="0.5 0.5 0.5"
+            align="center"
+        ></a-text>
     </a-nft>
 
 
@@ -138,34 +177,56 @@
 
         <a-entity raven-listener marker-debug="markerId: marker-b">
 
+            <!-- Fallback box -->
+            <a-box 
+                color="blue" 
+                position="0 0.5 0" 
+                scale="0.3 0.3 0.3"
+                material="opacity: 0.5; transparent: true"
+            ></a-box>
+
+            <!-- Bran model -->
             <a-gltf-model
                 id="bran-entity"
                 src="#bran-model"
-                scale="0.25 0.25 0.25"
-                position="0 0 -0.5"
+                scale="1 1 1"
+                position="0 0 0"
                 rotation="0 0 0"
+                model-checker="modelName: Bran"
             ></a-gltf-model>
 
+            <!-- Raven model -->
             <a-gltf-model
                 id="raven-entity"
                 src="#raven-model"
                 class="raycaster-target"
-                scale="0.15 0.15 0.15"
-                position="0 0.3 -0.4"
+                scale="0.5 0.5 0.5"
+                position="0 1 0"
                 rotation="0 0 0"
                 visible="true"
+                model-checker="modelName: Raven"
             ></a-gltf-model>
 
+            <!-- Vision text -->
             <a-text
                 id="vision-text"
                 value="Tap the Raven to Receive the Vision..."
                 color="#FFD700"
-                width="1.5"
-                position="0 0.5 -0.5"
+                width="2"
+                position="0 1.5 0"
                 align="center"
                 wrapCount="30"
                 rotation="0 0 0"
                 visible="true"
+            ></a-text>
+            
+            <!-- Debug text -->
+            <a-text
+                value="RAVEN MARKER"
+                color="white"
+                position="0 2 0"
+                scale="0.5 0.5 0.5"
+                align="center"
             ></a-text>
 
         </a-entity>
@@ -182,14 +243,33 @@
         kings-seal-logic 
         marker-debug="markerId: marker-c"
     >
+        <!-- Fallback box -->
+        <a-box 
+            color="green" 
+            position="0 0.5 0" 
+            scale="0.3 0.3 0.3"
+            material="opacity: 0.5; transparent: true"
+        ></a-box>
+        
+        <!-- Scroll model -->
         <a-gltf-model
             id="scroll-entity"
             src="#scroll-model"
-            scale="0.3 0.3 0.3"
-            position="0 0 -0.5"
+            scale="1 1 1"
+            position="0 0 0"
             rotation="-15 0 0"
             visible="false"
+            model-checker="modelName: Scroll"
         ></a-gltf-model>
+        
+        <!-- Debug text -->
+        <a-text
+            value="SEAL MARKER"
+            color="white"
+            position="0 1 0"
+            scale="0.5 0.5 0.5"
+            align="center"
+        ></a-text>
     </a-nft>
 
 </a-scene>
