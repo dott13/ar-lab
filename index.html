@@ -14,29 +14,63 @@
 <body>
 
 <script>
+    // GLOBAL STATE FLAG: Tracks if the Raven interaction has occurred
     window.visionSeen = false;
 
+    // --- 1. RAVEN LISTENER Component (Marker B) ---
     AFRAME.registerComponent('raven-listener', {
         init: function () {
             const el = this.el;
 
-            el.addEventListener('click', () => {
+            // Use 'mousedown' or 'touchend' for better mobile click detection
+            el.addEventListener('touchend', () => { 
                 if (!window.visionSeen) {
-                    window.visionSeen = true;
+                    window.visionSeen = true; // Set the global flag
 
+                    // Hide the clickable Raven model
                     el.setAttribute('visible', false);
 
+                    // Update and display the Vision Text
                     const visionText = document.getElementById('vision-text');
                     visionText.setAttribute(
                         'value',
                         'A Vision:\n"The ink is dry. The past is already written."\n- Bran the Broken'
                     );
                     visionText.setAttribute('visible', true);
+                    
+                    // Optional: Make the text visible for a fixed time then hide it
+                    setTimeout(() => {
+                        visionText.setAttribute('visible', false);
+                    }, 5000); 
                 }
             });
         }
     });
 
+    // --- 2. KING'S SEAL LOGIC Component (Marker C) ---
+    AFRAME.registerComponent('kings-seal-logic', {
+        init: function () {
+            const marker = this.el;
+            const scroll = document.getElementById('scroll-entity');
+
+            marker.addEventListener('markerFound', () => {
+                // Only show the scroll if the Raven Vision has been seen
+                if (window.visionSeen) {
+                    scroll.setAttribute('visible', true);
+                } else {
+                    // Otherwise, keep it hidden
+                    scroll.setAttribute('visible', false); 
+                }
+            });
+
+            marker.addEventListener('markerLost', () => {
+                // Always hide the scroll when the marker is lost
+                scroll.setAttribute('visible', false);
+            });
+        }
+    });
+
+    // --- 3. DEBUG STATUS Component ---
     AFRAME.registerComponent('marker-debug', {
         schema: { markerId: { type: 'string' } },
 
@@ -57,38 +91,38 @@
             });
         },
 
+        // Update initial status message
         tick: function () {
-            if (this.statusText.getAttribute('value') === 'STATUS: Loading Camera...') {
-                this.statusText.setAttribute('value', `STATUS: Waiting for ${this.markerID.toUpperCase()}...`);
+            if (this.statusText && this.statusText.getAttribute('value') === 'STATUS: Loading Camera...') {
+                // Set the initial waiting message only once the system is ready
+                const markerA = document.getElementById('marker-a');
+                if(markerA) {
+                     this.statusText.setAttribute('value', `STATUS: Waiting for ${this.markerID.toUpperCase()}...`);
+                }
             }
         }
     });
 </script>
 
 
-<!-- SCENE -->
 <a-scene 
     embedded
     vr-mode-ui="enabled: false"
     arjs="trackingMethod: best; sourceType: webcam; debugUIEnabled: false;"
     renderer="logarithmicDepthBuffer: true;"
-    raycaster="objects: [raycaster-target];"
+    
+    raycaster="objects: .raycaster-target;" 
     cursor="fuse: false; rayOrigin: mouse;"
 >
 
-    <!-- Assets -->
     <a-assets timeout="60000">
-
-        <!-- FIX: Use relative paths so they load instead of download -->
         <a-asset-item id="throne-model" src="iron_throne.glb"></a-asset-item>
         <a-asset-item id="bran-model" src="bran_stark.glb"></a-asset-item>
         <a-asset-item id="raven-model" src="raven.glb"></a-asset-item>
         <a-asset-item id="scroll-model" src="scroll.glb"></a-asset-item>
-
     </a-assets>
 
-    <!-- Debug Text -->
-    <a-entity marker-debug="markerId: marker-a">
+    <a-entity>
         <a-text
             id="debug-status"
             value="STATUS: Loading Camera..."
@@ -99,25 +133,24 @@
     </a-entity>
 
 
-    <!-- MARKER A -->
-    <a-nft type="nft" url="stark_sigil" emitevents="true" id="marker-a">
+    <a-nft type="nft" url="stark_sigil" emitevents="true" id="marker-a" marker-debug="markerId: marker-a">
         <a-gltf-model
             src="#throne-model"
-            scale="75 75 75"
+            scale="1 1 1" 
             rotation="-90 0 0"
+            position="0 0 0" 
         ></a-gltf-model>
     </a-nft>
 
 
-    <!-- MARKER B -->
-    <a-nft type="nft" url="raven_sigil" emitevents="true" id="marker-b">
+    <a-nft type="nft" url="raven_sigil" emitevents="true" id="marker-b" marker-debug="markerId: marker-b">
 
         <a-gltf-model
             id="bran-entity"
             src="#bran-model"
-            scale="75 75 75"
+            scale="1 1 1" 
             rotation="-90 0 0"
-            position="-0.5 0 0"
+            position="-0.2 0 0" 
         ></a-gltf-model>
 
         <a-gltf-model
@@ -125,10 +158,8 @@
             src="#raven-model"
             class="raycaster-target"
             raven-listener
-            scale="75 75 75"
-            rotation="-90 0 0"
-            position="0.5 0.5 0"
-            visible="true"
+            scale="0.2 0.2 0.2"               rotation="-90 0 0"
+            position="0.2 0.5 -0.1"           visible="true"
         ></a-gltf-model>
 
         <a-text
@@ -138,43 +169,30 @@
             font="monoid"
             width="2"
             rotation="-90 0 0"
-            scale="75 75 75"
-            position="0 1.5 0"
-            visible="true"
+            scale="0.15 0.15 0.15"            position="0 0.8 0"                visible="true"
         ></a-text>
 
     </a-nft>
 
 
-    <!-- MARKER C -->
-    <a-nft type="nft" url="kings_seal" emitevents="true" id="marker-c">
+    <a-nft 
+        type="nft" 
+        url="kings_seal" 
+        emitevents="true" 
+        id="marker-c" 
+        kings-seal-logic 
+        marker-debug="markerId: marker-c"
+    >
         <a-gltf-model
             id="scroll-entity"
             src="#scroll-model"
-            scale="75 75 75"
+            scale="1 1 1"
             rotation="-90 0 0"
             visible="false"
         ></a-gltf-model>
     </a-nft>
 
-
-    <a-entity camera></a-entity>
-
-</a-scene>
-
-<script>
-    document.getElementById('marker-c').addEventListener('markerFound', () => {
-        const scroll = document.getElementById('scroll-entity');
-
-        if (window.visionSeen) {
-            scroll.setAttribute('visible', true);
-        }
-    });
-
-    document.getElementById('marker-c').addEventListener('markerLost', () => {
-        document.getElementById('scroll-entity').setAttribute('visible', false);
-    });
-</script>
+    </a-scene>
 
 </body>
 </html>
