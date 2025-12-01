@@ -27,22 +27,45 @@
                 const el = this.el; 
                 
                 el.addEventListener('click', function (evt) {
-                    // Check if the raven hasn't been clicked yet
                     if (!window.visionSeen) { 
                         console.log("Raven clicked! Unlocking new story state.");
-
-                        // 1. Set the new state
                         window.visionSeen = true;
-                        
-                        // 2. Hide the Raven (Interaction complete)
                         el.setAttribute('visible', false);
 
-                        // 3. Update/Show the Vision text panel
                         const visionText = document.getElementById('vision-text');
                         visionText.setAttribute('value', 'A Vision:\n"The ink is dry. The past is already written."\n- Bran the Broken');
                         visionText.setAttribute('visible', true);
                     }
                 });
+            }
+        });
+
+        // ======================================================================
+        // NEW DEBUG COMPONENT
+        // ======================================================================
+        AFRAME.registerComponent('marker-debug', {
+            init: function () {
+                this.markerID = this.data.markerId;
+                this.statusText = document.getElementById('debug-status');
+                
+                document.getElementById(this.markerID).addEventListener('markerFound', () => {
+                    this.statusText.setAttribute('value', `TRACKING ${this.markerID.toUpperCase()}: SUCCESS!`);
+                    this.statusText.setAttribute('color', 'green');
+                });
+
+                document.getElementById(this.markerID).addEventListener('markerLost', () => {
+                    this.statusText.setAttribute('value', `STATUS: Waiting for ${this.markerID.toUpperCase()}...`);
+                    this.statusText.setAttribute('color', 'red');
+                });
+            },
+            tick: function() {
+                // Initial check for camera/status load
+                 if (this.statusText.getAttribute('value') === 'STATUS: Loading Camera...') {
+                     this.statusText.setAttribute('value', `STATUS: Waiting for ${this.markerID.toUpperCase()}...`);
+                 }
+            },
+            schema: {
+                markerId: {type: 'string', default: 'marker-a'}
             }
         });
     </script>
@@ -54,6 +77,16 @@
         cursor="fuse: false; rayOrigin: mouse;"
     >
     
+    <a-entity marker-debug="markerId: marker-a">
+        <a-text 
+            id="debug-status"
+            value="STATUS: Loading Camera..."
+            color="red"
+            position="-1.5 1.7 -5"  /* Positioned high on the screen */
+            scale="0.8 0.8 0.8"
+        ></a-text>
+    </a-entity>
+
     <a-marker-camera type="nft" url="./markers/stark_sigil" emitevents="true" id="marker-a">
         <a-gltf-model 
             id="empty-throne-entity"
@@ -64,7 +97,7 @@
         ></a-gltf-model>
     </a-marker-camera>
 
-    <a-marker-camera type="nft" url=".markers/raven_sigil" emitevents="true" id="marker-b">
+    <a-marker-camera type="nft" url="./markers/raven_sigil" emitevents="true" id="marker-b">
         
         <a-gltf-model 
             id="bran-entity" 
@@ -77,7 +110,8 @@
         <a-gltf-model 
             id="raven-entity"
             src="#raven-model"
-            raven-listener          class="raycaster-target"  scale="0.05 0.05 0.05" 
+            raven-listener class="raycaster-target"
+            scale="0.05 0.05 0.05" 
             rotation="-90 0 0" 
             position="0.5 0.5 0"
             visible="true"
@@ -114,12 +148,10 @@
             const scroll = document.getElementById('scroll-entity');
             
             if (window.visionSeen) {
-                // Grade 9 Condition: Only reveal the new scenario if the interaction is complete!
                 scroll.setAttribute('visible', true);
                 console.log("Marker C Found: New Scenario Revealed! Grade 9 logic verified.");
             } else {
                 console.log("Marker C Found, but object is hidden. Must complete the Raven interaction first.");
-                // Optional: You could make a text panel visible here saying "Return to the Raven."
             }
         });
 
