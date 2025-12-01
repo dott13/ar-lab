@@ -2,34 +2,105 @@
 <html>
 <head>
     <title>Game of Thrones AR: The Vision of Bran</title>
-
     <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar-nft.js"></script>
-
     <style>
-        body { margin: 0; overflow: hidden; }
+        body { 
+            margin: 0; 
+            overflow: hidden; 
+            font-family: Arial, sans-serif;
+        }
+        #loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 24px;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+            z-index: 10000;
+        }
+        #debug-panel {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            z-index: 9999;
+            max-width: 300px;
+        }
     </style>
 </head>
-
 <body>
+
+<div id="loading">Initializing AR Experience...</div>
+<div id="debug-panel">Status: Loading...</div>
 
 <script>
     window.visionSeen = false;
+    let modelsLoaded = 0;
+    const totalModels = 4;
+
+    // ----------------------- LOADING MANAGER -----------------------
+    function updateLoadingStatus() {
+        modelsLoaded++;
+        const percent = Math.round((modelsLoaded / totalModels) * 100);
+        document.getElementById('loading').innerHTML = `Loading models: ${percent}%`;
+        
+        if (modelsLoaded >= totalModels) {
+            setTimeout(() => {
+                document.getElementById('loading').style.display = 'none';
+            }, 500);
+        }
+    }
 
     // ----------------------- MODEL LOAD CHECKER -----------------------
     AFRAME.registerComponent('model-checker', {
-        schema: { modelName: { type: 'string' } },
+        schema: { 
+            modelName: { type: 'string' },
+            debugId: { type: 'string', default: '' }
+        },
         
         init: function () {
             const modelName = this.data.modelName;
+            const debugId = this.data.debugId || modelName.toLowerCase();
             
             this.el.addEventListener('model-loaded', () => {
                 console.log(`✓ ${modelName} loaded successfully`);
+                updateLoadingStatus();
+                
+                // Update debug panel
+                const debugPanel = document.getElementById('debug-panel');
+                debugPanel.innerHTML += `<br>✓ ${modelName} loaded`;
+                
+                // Make sure model is visible
+                this.el.setAttribute('visible', true);
             });
             
             this.el.addEventListener('model-error', (e) => {
-                console.error(`✗ ${modelName} failed to load:`, e);
+                console.error(`✗ ${modelName} failed to load:`, e.detail);
+                const debugPanel = document.getElementById('debug-panel');
+                debugPanel.innerHTML += `<br>✗ ${modelName} failed`;
+                debugPanel.style.color = 'red';
             });
+        }
+    });
+
+    // ----------------------- SCALE ADJUSTER -----------------------
+    AFRAME.registerComponent('scale-adjuster', {
+        schema: {
+            scale: { type: 'vec3', default: { x: 1, y: 1, z: 1 } }
+        },
+        
+        init: function () {
+            // Adjust scale to make models visible at AR scale
+            this.el.setAttribute('scale', this.data.scale);
         }
     });
 
@@ -39,29 +110,49 @@
             const el = this.el;
             const markerB = document.getElementById('marker-b');
             const visionText = document.getElementById('vision-text');
+            const ravenEntity = document.getElementById('raven-entity');
 
             markerB.addEventListener('markerFound', () => {
+                console.log("Raven marker found!");
+                document.getElementById('debug-panel').innerHTML += "<br>Raven marker detected";
+                
                 if (!window.visionSeen) {
                     window.visionSeen = true;
-
                     visionText.setAttribute(
                         'value',
-                        'A Vision:\n"The ink is dry. The past is already written."\n- Bran the Broken'
+                        'A Vision:\n"The ink is dry.\nThe past is already written."\n- Bran the Broken'
                     );
                     visionText.setAttribute('visible', true);
+                    
+                    // Add animation to raven
+                    ravenEntity.setAttribute('animation', {
+                        property: 'position.y',
+                        to: 1.2,
+                        from: 1,
+                        dir: 'alternate',
+                        dur: 1000,
+                        loop: true
+                    });
 
                     setTimeout(() => {
                         visionText.setAttribute('visible', false);
+                        ravenEntity.removeAttribute('animation');
                     }, 5000);
                 }
             });
 
             markerB.addEventListener('markerLost', () => {
                 visionText.setAttribute('visible', false);
+                document.getElementById('debug-panel').innerHTML += "<br>Raven marker lost";
             });
 
-            el.addEventListener('touchend', () => {
-                console.log("Raven tapped.");
+            // Make raven clickable/tappable
+            ravenEntity.addEventListener('click', () => {
+                console.log("Raven clicked!");
+                visionText.setAttribute('visible', true);
+                setTimeout(() => {
+                    visionText.setAttribute('visible', false);
+                }, 3000);
             });
         }
     });
@@ -73,8 +164,19 @@
             const scroll = document.getElementById('scroll-entity');
 
             marker.addEventListener('markerFound', () => {
+                console.log("King's seal marker found!");
+                document.getElementById('debug-panel').innerHTML += "<br>Seal marker detected";
+                
                 if (window.visionSeen) {
                     scroll.setAttribute('visible', true);
+                    // Animate scroll appearance
+                    scroll.setAttribute('animation', {
+                        property: 'scale',
+                        to: '1 1 1',
+                        from: '0.1 0.1 0.1',
+                        dur: 1000,
+                        easing: 'easeOutElastic'
+                    });
                 } else {
                     scroll.setAttribute('visible', false);
                 }
@@ -82,197 +184,263 @@
 
             marker.addEventListener('markerLost', () => {
                 scroll.setAttribute('visible', false);
+                document.getElementById('debug-panel').innerHTML += "<br>Seal marker lost";
             });
         }
     });
 
-    // ----------------------- DEBUG COMPONENT -----------------------
+    // ----------------------- MARKER DEBUG -----------------------
     AFRAME.registerComponent('marker-debug', {
         schema: { markerId: { type: 'string' } },
 
         init: function () {
-            this.markerID = this.data.markerId;
-            this.statusText = document.getElementById('debug-status');
-
-            const marker = document.getElementById(this.markerID);
+            const markerId = this.data.markerId;
+            const marker = document.getElementById(markerId);
 
             marker.addEventListener('markerFound', () => {
-                this.statusText.setAttribute('value', `TRACKING ${this.markerID.toUpperCase()}: SUCCESS!`);
-                this.statusText.setAttribute('color', 'green');
-                console.log(`${this.markerID} marker found!`);
+                console.log(`${markerId} found!`);
+                const debugPanel = document.getElementById('debug-panel');
+                debugPanel.innerHTML = `${markerId.toUpperCase()} TRACKING`;
+                debugPanel.style.color = '#00ff00';
             });
 
             marker.addEventListener('markerLost', () => {
-                this.statusText.setAttribute('value', `STATUS: Waiting for ${this.markerID.toUpperCase()}...`);
-                this.statusText.setAttribute('color', 'red');
-                console.log(`${this.markerID} marker lost`);
+                console.log(`${markerId} lost`);
+                document.getElementById('debug-panel').innerHTML = "Searching for markers...";
+                document.getElementById('debug-panel').style.color = 'white';
             });
         }
     });
 </script>
 
-
 <!-- ========================= SCENE ========================= -->
-
 <a-scene 
     embedded
     vr-mode-ui="enabled: false"
-    arjs="trackingMethod: best; sourceType: webcam; debugUIEnabled: false;"
-    renderer="logarithmicDepthBuffer: true;"
-    raycaster="objects: .raycaster-target;" 
-    cursor="fuse: false; rayOrigin: mouse;"
+    loading-screen="enabled: false"
+    arjs="
+        sourceType: webcam;
+        debugUIEnabled: false;
+        detectionMode: mono;
+        matrixCodeType: 3x3;
+        maxDetectionRate: 60;
+    "
+    renderer="
+        antialias: true;
+        alpha: true;
+        precision: medium;
+        logarithmicDepthBuffer: true;
+    "
+    cursor="rayOrigin: mouse"
 >
 
-    <a-assets timeout="60000">
+    <!-- ==================== ASSETS ==================== -->
+    <a-assets timeout="30000">
         <a-asset-item id="throne-model" src="iron_throne.glb"></a-asset-item>
         <a-asset-item id="bran-model" src="bran_stark.glb"></a-asset-item>
         <a-asset-item id="raven-model" src="raven.glb"></a-asset-item>
         <a-asset-item id="scroll-model" src="scroll.glb"></a-asset-item>
     </a-assets>
 
-    <!-- DEBUG TEXT -->
-    <a-text
-        id="debug-status"
-        value="STATUS: Loading Camera..."
-        color="red"
-        position="0 0.4 -1"
-        scale="0.25 0.25 0.25"
-        align="center"
-    ></a-text>
+    <!-- ==================== LIGHTING ==================== -->
+    <!-- CRITICAL: Models need lighting to be visible -->
+    <a-entity light="type: ambient; color: #888; intensity: 0.8"></a-entity>
+    <a-entity light="type: directional; color: #FFF; intensity: 0.9" 
+              position="2 5 3" rotation="0 0 0"></a-entity>
+    <a-entity light="type: point; color: #FFF; intensity: 0.5" 
+              position="0 3 2"></a-entity>
 
+    <!-- ==================== CAMERA ==================== -->
+    <a-entity camera="fov: 60; zoom: 1;" position="0 1.6 0">
+        <a-entity cursor="fuse: false; rayOrigin: mouse;"></a-entity>
+    </a-entity>
 
-    <!-- ========================= MARKER A (THRONE) ========================= -->
-    <a-nft type="nft" url="stark_sigil" emitevents="true" id="marker-a" marker-debug="markerId: marker-a">
+    <!-- ==================== MARKER A: THRONE ==================== -->
+    <a-nft 
+        type="nft" 
+        url="stark_sigil"
+        emitevents="true" 
+        id="marker-a"
+        smooth="true"
+        smoothCount="5"
+        smoothTolerance="0.01"
+        marker-debug="markerId: marker-a"
+    >
+        <!-- Iron Throne Model -->
+        <a-entity 
+            gltf-model="#throne-model"
+            scale="0.05 0.05 0.05"
+            position="0 -0.5 0"
+            rotation="0 180 0"
+            model-checker="modelName: Iron Throne; debugId: throne"
+            visible="true"
+        >
+            <!-- Optional: Add a platform for the throne -->
+            <a-box 
+                color="#333333"
+                width="2"
+                height="0.1"
+                depth="2"
+                position="0 -0.5 0"
+            ></a-box>
+        </a-entity>
         
-        <!-- Fallback box to test visibility -->
-        <a-box 
-            color="red" 
-            position="0 0.5 0" 
-            scale="0.3 0.3 0.3"
-            material="opacity: 0.5; transparent: true"
-        ></a-box>
-        
-        <!-- Throne model -->
-        <a-gltf-model
-            src="#throne-model"
-            scale="1 1 1"
-            position="0 0 0"
-            rotation="0 0 0"
-            model-checker="modelName: Throne"
-        ></a-gltf-model>
-        
-        <!-- Debug text on marker -->
         <a-text
-            value="THRONE MARKER"
-            color="white"
-            position="0 1 0"
-            scale="0.5 0.5 0.5"
+            value="IRON THRONE"
+            color="#FFFFFF"
+            position="0 1.5 0"
+            scale="0.4 0.4 0.4"
             align="center"
+            background="color: rgba(0,0,0,0.7)"
         ></a-text>
     </a-nft>
 
-
-    <!-- ========================= MARKER B (BRAN + RAVEN) ========================= -->
-    <a-nft type="nft" url="raven_sigil" emitevents="true" id="marker-b">
-
-        <a-entity raven-listener marker-debug="markerId: marker-b">
-
-            <!-- Fallback box -->
-            <a-box 
-                color="blue" 
-                position="0 0.5 0" 
-                scale="0.3 0.3 0.3"
-                material="opacity: 0.5; transparent: true"
-            ></a-box>
-
-            <!-- Bran model -->
-            <a-gltf-model
-                id="bran-entity"
-                src="#bran-model"
-                scale="1 1 1"
-                position="0 0 0"
-                rotation="0 0 0"
-                model-checker="modelName: Bran"
-            ></a-gltf-model>
-
-            <!-- Raven model -->
-            <a-gltf-model
-                id="raven-entity"
-                src="#raven-model"
-                class="raycaster-target"
-                scale="0.5 0.5 0.5"
-                position="0 1 0"
-                rotation="0 0 0"
-                visible="true"
-                model-checker="modelName: Raven"
-            ></a-gltf-model>
-
-            <!-- Vision text -->
-            <a-text
-                id="vision-text"
-                value="Tap the Raven to Receive the Vision..."
-                color="#FFD700"
-                width="2"
-                position="0 1.5 0"
-                align="center"
-                wrapCount="30"
-                rotation="0 0 0"
-                visible="true"
-            ></a-text>
-            
-            <!-- Debug text -->
-            <a-text
-                value="RAVEN MARKER"
-                color="white"
-                position="0 2 0"
-                scale="0.5 0.5 0.5"
-                align="center"
-            ></a-text>
-
-        </a-entity>
-
-    </a-nft>
-
-
-    <!-- ========================= MARKER C (SCROLL) ========================= -->
+    <!-- ==================== MARKER B: BRAN & RAVEN ==================== -->
     <a-nft 
         type="nft" 
-        url="kings_seal" 
+        url="raven_sigil"
         emitevents="true" 
-        id="marker-c" 
-        kings-seal-logic 
-        marker-debug="markerId: marker-c"
+        id="marker-b"
+        smooth="true"
+        smoothCount="5"
+        smoothTolerance="0.01"
+        marker-debug="markerId: marker-b"
     >
-        <!-- Fallback box -->
-        <a-box 
-            color="green" 
-            position="0 0.5 0" 
-            scale="0.3 0.3 0.3"
-            material="opacity: 0.5; transparent: true"
-        ></a-box>
-        
-        <!-- Scroll model -->
-        <a-gltf-model
+        <a-entity raven-listener>
+            <!-- Bran Stark Model -->
+            <a-entity 
+                id="bran-entity"
+                gltf-model="#bran-model"
+                scale="0.03 0.03 0.03"
+                position="0 0 0"
+                rotation="0 180 0"
+                model-checker="modelName: Bran Stark; debugId: bran"
+                visible="true"
+            >
+                <!-- Platform for Bran -->
+                <a-cylinder 
+                    color="#8B4513"
+                    radius="0.5"
+                    height="0.05"
+                    position="0 -0.3 0"
+                ></a-cylinder>
+            </a-entity>
+
+            <!-- Raven Model -->
+            <a-entity 
+                id="raven-entity"
+                gltf-model="#raven-model"
+                scale="0.02 0.02 0.02"
+                position="0 1 0.5"
+                rotation="0 0 0"
+                model-checker="modelName: Raven; debugId: raven"
+                visible="true"
+                animation="property: rotation; to: 0 360 0; loop: true; dur: 10000; easing: linear"
+            >
+            </a-entity>
+
+            <!-- Vision Text -->
+            <a-text
+                id="vision-text"
+                value=""
+                color="#FFD700"
+                width="3"
+                position="0 2 0"
+                align="center"
+                wrap-count="25"
+                baseline="center"
+                visible="false"
+                background="color: rgba(0,0,0,0.8)"
+                shader="msdf"
+                font="https://cdn.aframe.io/fonts/Roboto-msdf.json"
+            ></a-text>
+            
+            <a-text
+                value="BRAN'S VISION"
+                color="#FFFFFF"
+                position="0 2.5 0"
+                scale="0.3 0.3 0.3"
+                align="center"
+                background="color: rgba(0,0,0,0.7)"
+            ></a-text>
+        </a-entity>
+    </a-nft>
+
+    <!-- ==================== MARKER C: SCROLL ==================== -->
+    <a-nft 
+        type="nft" 
+        url="kings_seal"
+        emitevents="true" 
+        id="marker-c"
+        smooth="true"
+        smoothCount="5"
+        smoothTolerance="0.01"
+        marker-debug="markerId: marker-c"
+        kings-seal-logic
+    >
+        <!-- Scroll Model (initially hidden) -->
+        <a-entity 
             id="scroll-entity"
-            src="#scroll-model"
-            scale="1 1 1"
-            position="0 0 0"
-            rotation="-15 0 0"
+            gltf-model="#scroll-model"
+            scale="0.04 0.04 0.04"
+            position="0 0.5 0"
+            rotation="-30 180 0"
+            model-checker="modelName: Scroll; debugId: scroll"
             visible="false"
-            model-checker="modelName: Scroll"
-        ></a-gltf-model>
+        >
+            <!-- Platform for scroll -->
+            <a-box 
+                color="#5D4037"
+                width="1"
+                height="0.05"
+                depth="1"
+                position="0 -0.3 0"
+                visible="true"
+            ></a-box>
+        </a-entity>
         
-        <!-- Debug text -->
         <a-text
-            value="SEAL MARKER"
-            color="white"
-            position="0 1 0"
-            scale="0.5 0.5 0.5"
+            value="KING'S DECREE"
+            color="#FFFFFF"
+            position="0 1.5 0"
+            scale="0.3 0.3 0.3"
             align="center"
+            background="color: rgba(0,0,0,0.7)"
         ></a-text>
     </a-nft>
 
 </a-scene>
+
+<script>
+    // Additional debug info
+    window.addEventListener('load', () => {
+        console.log("Scene loaded");
+        
+        // Check if models are accessible
+        const modelUrls = [
+            'iron_throne.glb',
+            'bran_stark.glb', 
+            'raven.glb',
+            'scroll.glb'
+        ];
+        
+        modelUrls.forEach(url => {
+            fetch(url)
+                .then(response => {
+                    console.log(`${url}: ${response.ok ? '✓ Available' : '✗ Not found'}`);
+                })
+                .catch(error => {
+                    console.error(`${url}: ✗ Error - ${error.message}`);
+                });
+        });
+    });
+
+    // Handle scene loaded event
+    document.querySelector('a-scene').addEventListener('loaded', () => {
+        console.log("A-Frame scene fully loaded");
+        document.getElementById('debug-panel').innerHTML = "Ready! Point camera at markers.";
+    });
+</script>
 
 </body>
 </html>
