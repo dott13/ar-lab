@@ -22,10 +22,9 @@
 
 <script>
     window.playerChar = null;
+    
     // Function to check for win/loss conditions
     function checkCombat(player, opponent) {
-        console.log(`Combat: ${player} vs ${opponent}`);
-
         if (player === opponent) {
             return `TIE! You are both ${player}s.`;
         }
@@ -65,34 +64,35 @@
                     // Show the selected character's model
                     modelEntity.setAttribute('visible', true);
 
-                    console.log(`Player selected: ${charName}`);
                 } else if (window.playerChar !== charName) {
-                    // 2. Combat Phase
+                    // 2. Combat Phase - SHOW OPPONENT MODEL & DELAY RESET
+
+                    // CRITICAL CHANGE 1: Show the opponent's model (tied to the currently scanned marker)
+                    modelEntity.setAttribute('visible', true); 
+
                     const result = checkCombat(window.playerChar, charName);
-                    resultText.setAttribute('value', `${result}\nScan a marker to restart.`);
+                    resultText.setAttribute('value', `${result}\nModels visible for 5s. Scan to restart.`);
                     resultText.setAttribute('color', result.includes('VICTORY') ? 'lime' : (result.includes('DEFEAT') ? 'red' : 'white'));
 
-                    console.log(result);
-                    
-                    // Hide all models after combat
-                    document.getElementById('mage-model').setAttribute('visible', false);
-                    document.getElementById('warrior-model').setAttribute('visible', false);
-                    document.getElementById('archer-model').setAttribute('visible', false);
-                    
-                    // Reset game state after a delay
+                    // CRITICAL CHANGE 2: Delay model hiding and game reset for 5 seconds
                     setTimeout(() => {
+                        // Hide ALL models after the result has been shown
+                        document.getElementById('mage-model').setAttribute('visible', false);
+                        document.getElementById('warrior-model').setAttribute('visible', false);
+                        document.getElementById('archer-model').setAttribute('visible', false);
+                        
                         window.playerChar = null;
                         resultText.setAttribute('value', 'SCAN a marker to SELECT your character.');
                         resultText.setAttribute('color', 'white');
-
                     }, 5000);
                 }
             });
 
             // --- Marker Lost Event ---
             el.addEventListener('markerLost', () => {
-                // If a character is selected, only hide the opponent's model when lost
-                if (window.playerChar === null || window.playerChar === charName) {
+                // Only hide the model if no character is selected (Initial state)
+                // If in combat, we rely on the setTimeout function to reset the visibility.
+                if (window.playerChar === null) {
                      modelEntity.setAttribute('visible', false);
                 }
             });
@@ -135,8 +135,9 @@
         <a-gltf-model
             id="mage-model"
             src="#mage-model-asset"
-            scale="75 75 75"        rotation="-90 0 0"
-            position="100 0 0.5"          visible="false"            ></a-gltf-model>
+            scale="75 75 75"           rotation="-90 0 0"
+            position="100 0 0.5"       visible="false" 
+        ></a-gltf-model>
     </a-nft>
 
 
@@ -150,14 +151,11 @@
         <a-gltf-model
             id="warrior-model"
             src="#warrior-model-asset"
-            scale="50 50 50"
-            rotation="-90 0 0"
-            position="180 20 1"
-            visible="false"
+            scale="70 70 70"           rotation="-90 0 0"
+            position="180 20 1"        visible="false"
         ></a-gltf-model>
     </a-nft>
 
-=
     <a-nft
         type="nft"
         url="archer" 
@@ -168,10 +166,8 @@
         <a-gltf-model
             id="archer-model"
             src="#archer-model-asset"
-            scale="60 60 60"
-            rotation="-90 0 0"
-            position="100 0 0"
-            visible="false"
+            scale="70 70 70"           rotation="-90 0 0"
+            position="100 0 0"         visible="false"
         ></a-gltf-model>
     </a-nft>
 
