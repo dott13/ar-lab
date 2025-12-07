@@ -1,74 +1,103 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Game of Thrones AR: The Vision of Bran</title>
+    <title>AR RPG: Mage, Warrior, Archer</title>
 
     <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar-nft.js"></script>
 
     <style>
         body { margin: 0; overflow: hidden; }
-        /* Keeping the loader simple, as per your original code */
+        /* Simple loader for better user experience */
+        .arjs-loader {
+            position: absolute; top: 0; left: 0; 
+            width: 100%; height: 100%; 
+            background-color: rgba(0, 0, 0, 0.9); 
+            display: flex; justify-content: center; align-items: center;
+            color: white; font-size: 1.5em; z-index: 9999;
+        }
     </style>
-
 </head>
 <body>
+<div class="arjs-loader">Loading AR Scene...</div>
 
 <script>
-    window.visionSeen = false;
+    // --- Global Game State ---
+    window.playerChar = null; // Stores the selected character ('mage', 'warrior', 'archer')
 
-    // Raven click logic
-    AFRAME.registerComponent('raven-listener', {
+    // Function to check for win/loss conditions
+    function checkCombat(player, opponent) {
+        console.log(`Combat: ${player} vs ${opponent}`);
+
+        if (player === opponent) {
+            return `TIE! You are both ${player}s.`;
+        }
+
+        // Win conditions: Mage > Warrior, Warrior > Archer, Archer > Mage
+        if (
+            (player === 'mage' && opponent === 'warrior') ||
+            (player === 'warrior' && opponent === 'archer') ||
+            (player === 'archer' && opponent === 'mage')
+        ) {
+            return `VICTORY! ${player} defeats ${opponent}!`;
+        } else {
+            return `DEFEAT! ${opponent} overpowers ${player}.`;
+        }
+    }
+
+    // A-Frame Component for Marker Interaction
+    AFRAME.registerComponent('rpg-marker-listener', {
+        schema: {
+            char: { type: 'string' } // 'mage', 'warrior', or 'archer'
+        },
+
         init: function () {
             const el = this.el;
+            const charName = this.data.char;
+            const resultText = document.getElementById('result-text');
+            const modelEntity = document.getElementById(`${charName}-model`);
 
-            el.addEventListener('click', function () {
-                if (!window.visionSeen) {
-                    console.log("Raven clicked! Unlocking story state.");
-                    window.visionSeen = true;
+            // --- Marker Found Event ---
+            el.addEventListener('markerFound', () => {
+                if (window.playerChar === null) {
+                    // 1. Selection Phase
+                    window.playerChar = charName;
+                    resultText.setAttribute('value', `SELECTED: ${charName.toUpperCase()}! Now scan an opponent.`);
+                    resultText.setAttribute('color', 'yellow');
+                    
+                    // Show the selected character's model
+                    modelEntity.setAttribute('visible', true);
 
-                    el.setAttribute('visible', false);
+                    console.log(`Player selected: ${charName}`);
+                } else if (window.playerChar !== charName) {
+                    // 2. Combat Phase
+                    const result = checkCombat(window.playerChar, charName);
+                    resultText.setAttribute('value', `${result}\nScan a marker to restart.`);
+                    resultText.setAttribute('color', result.includes('VICTORY') ? 'lime' : (result.includes('DEFEAT') ? 'red' : 'white'));
 
-                    const visionText = document.getElementById('vision-text');
-                    visionText.setAttribute(
-                        'value',
-                        'A Vision:\n"The ink is dry. The past is already written."\n- Bran the Broken'
-                    );
-                    // Adjust text position after vision is revealed (large units)
-                    visionText.setAttribute('position', '0 0 120'); 
-                    visionText.setAttribute('visible', true);
+                    console.log(result);
+                    
+                    // Hide all models after combat
+                    document.getElementById('mage-model').setAttribute('visible', false);
+                    document.getElementById('warrior-model').setAttribute('visible', false);
+                    document.getElementById('archer-model').setAttribute('visible', false);
+                    
+                    // Reset game state after a delay
+                    setTimeout(() => {
+                        window.playerChar = null;
+                        resultText.setAttribute('value', 'SCAN a marker to SELECT your character.');
+                        resultText.setAttribute('color', 'white');
+                    }, 5000);
                 }
             });
-        }
-    });
 
-    // Marker debug logic (no changes needed here)
-    AFRAME.registerComponent('marker-debug', {
-        schema: {
-            markerId: { type: 'string' }
-        },
-
-        init: function () {
-            this.markerID = this.data.markerId;
-            this.statusText = document.getElementById('debug-status');
-
-            const marker = document.getElementById(this.markerID);
-
-            marker.addEventListener('markerFound', () => {
-                this.statusText.setAttribute('value', `TRACKING ${this.markerID.toUpperCase()}: SUCCESS!`);
-                this.statusText.setAttribute('color', 'green');
+            // --- Marker Lost Event ---
+            el.addEventListener('markerLost', () => {
+                // If a character is selected, only hide the opponent's model when lost
+                if (window.playerChar === null || window.playerChar === charName) {
+                     modelEntity.setAttribute('visible', false);
+                }
             });
-
-            marker.addEventListener('markerLost', () => {
-                this.statusText.setAttribute('value', `STATUS: Waiting for ${this.markerID.toUpperCase()}...`);
-                this.statusText.setAttribute('color', 'red');
-            });
-        },
-
-        tick: function () {
-            if (this.statusText.getAttribute('value') === 'STATUS: Loading Camera...') {
-                this.statusText.setAttribute('value', `STATUS: Waiting for ${this.markerID.toUpperCase()}...`);
-            }
         }
     });
 </script>
@@ -82,106 +111,73 @@
 >
 
     <a-assets>
-        <a-asset-item id="throne-model" src="/iron_throne.glb"></a-asset-item>
-        <a-asset-item id="bran-model" src="/bran_stark.glb"></a-asset-item>
-        <a-asset-item id="raven-model" src="/raven.glb"></a-asset-item>
-        <a-asset-item id="scroll-model" src="/scroll.glb"></a-asset-item>
+        <a-asset-item id="mage-model-asset" src="/mage.glb"></a-asset-item>
+        <a-asset-item id="warrior-model-asset" src="/warrior.glb"></a-asset-item>
+        <a-asset-item id="archer-model-asset" src="/archer.glb"></a-asset-item>
     </a-assets>
 
-    <a-entity marker-debug="markerId: marker-a">
+    <a-entity camera>
         <a-text
-            id="debug-status"
-            value="STATUS: Loading Camera..."
-            color="red"
-            position="-1.5 1.7 -5"
-            scale="0.8 0.8 0.8"
+            id="result-text"
+            value="SCAN a marker to SELECT your character."
+            color="white"
+            align="center"
+            width="2.5"
+            position="0 0.5 -1.5"
         ></a-text>
     </a-entity>
-
-
+    
     <a-nft
         type="nft"
-        url="stark_sigil"
+        url="mage" 
         emitevents="true"
         id="marker-a"
+        rpg-marker-listener="char: mage"
     >
         <a-gltf-model
-            src="#throne-model"
-            scale="40 40 40"        rotation="-90 0 0"
-            position="50 0 2"          ></a-gltf-model>
+            id="mage-model"
+            src="#mage-model-asset"
+            scale="100 100 100"        rotation="-90 0 0"
+            position="50 0 0.5"          visible="false"            ></a-gltf-model>
     </a-nft>
 
 
     <a-nft
         type="nft"
-        url="raven_sigil"
+        url="warrior" 
         emitevents="true"
         id="marker-b"
+        rpg-marker-listener="char: warrior"
     >
-
         <a-gltf-model
-            id="bran-entity"
-            src="#bran-model"
-            scale="80 80 80"        rotation="-90 0 0"
-            position="20 10 5"           ></a-gltf-model>
-
-        <a-gltf-model
-            id="raven-entity"
-            src="#raven-model"
-            class="raycaster-target"
-            raven-listener
-            scale="50 50 50"          rotation="-90 0 0"
-            position="0 -10 50"         visible="true"
+            id="warrior-model"
+            src="#warrior-model-asset"
+            scale="100 100 100"
+            rotation="-90 0 0"
+            position="50 0 0.5"
+            visible="false"
         ></a-gltf-model>
-
-        <a-text
-            id="vision-text"
-            value="Tap the Raven to Receive the Vision..."
-            color="black"
-            font="monoid"
-            width="200"              rotation="-90 0 0"
-            position="0 0 70"        visible="true"
-        ></a-text>
-
     </a-nft>
 
-
+=
     <a-nft
         type="nft"
-        url="kings_seal"
+        url="archer" 
         emitevents="true"
         id="marker-c"
+        rpg-marker-listener="char: archer"
     >
         <a-gltf-model
-            id="scroll-entity"
-            src="#scroll-model"
-            scale="150 150 150"        rotation="-90 0 0"
-            position="0 0 10"          visible="false"
+            id="archer-model"
+            src="#archer-model-asset"
+            scale="100 100 100"
+            rotation="-90 0 0"
+            position="50 0 0.5"
+            visible="false"
         ></a-gltf-model>
     </a-nft>
 
-
-    <a-entity camera></a-entity>
-
 </a-scene>
-
-<script>
-    // Marker C logic (scroll appears only after raven click)
-    document.getElementById('marker-c').addEventListener('markerFound', function () {
-        const scroll = document.getElementById('scroll-entity');
-
-        if (window.visionSeen) {
-            scroll.setAttribute('visible', true);
-            console.log("Marker C Found: New Scenario Revealed!");
-        } else {
-            console.log("Marker C Found, but blocked until Raven interaction.");
-        }
-    });
-
-    document.getElementById('marker-c').addEventListener('markerLost', function () {
-        document.getElementById('scroll-entity').setAttribute('visible', false);
-    });
-</script>
 
 </body>
 </html>
