@@ -8,7 +8,6 @@
 
     <style>
         body { margin: 0; overflow: hidden; }
-        /* Simple loader for better user experience */
         .arjs-loader {
             position: absolute; top: 0; left: 0; 
             width: 100%; height: 100%; 
@@ -22,9 +21,7 @@
 <div class="arjs-loader">Loading AR Scene...</div>
 
 <script>
-    // --- Global Game State ---
-    window.playerChar = null; // Stores the selected character ('mage', 'warrior', 'archer')
-
+    window.playerChar = null;
     // Function to check for win/loss conditions
     function checkCombat(player, opponent) {
         console.log(`Combat: ${player} vs ${opponent}`);
@@ -122,7 +119,7 @@
             value="SCAN a marker to SELECT your character."
             color="white"
             align="center"
-            width="2.5"
+            width="0.3"
             position="0 0.5 -1.5"
         ></a-text>
     </a-entity>
@@ -137,7 +134,7 @@
         <a-gltf-model
             id="mage-model"
             src="#mage-model-asset"
-            scale="100 100 100"        rotation="-90 0 0"
+            scale="75 75 75"        rotation="-90 0 0"
             position="50 0 0.5"          visible="false"            ></a-gltf-model>
     </a-nft>
 
@@ -152,9 +149,9 @@
         <a-gltf-model
             id="warrior-model"
             src="#warrior-model-asset"
-            scale="100 100 100"
+            scale="75 75 75"
             rotation="-90 0 0"
-            position="50 0 0.5"
+            position="50 0 30"
             visible="false"
         ></a-gltf-model>
     </a-nft>
@@ -170,9 +167,9 @@
         <a-gltf-model
             id="archer-model"
             src="#archer-model-asset"
-            scale="100 100 100"
+            scale="75 75 75"
             rotation="-90 0 0"
-            position="50 0 0.5"
+            position="50 0 30"
             visible="false"
         ></a-gltf-model>
     </a-nft>
