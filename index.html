@@ -84,6 +84,7 @@
                         window.playerChar = null;
                         resultText.setAttribute('value', 'SCAN a marker to SELECT your character.');
                         resultText.setAttribute('color', 'white');
+
                     }, 5000);
                 }
             });
@@ -119,8 +120,8 @@
             value="SCAN a marker to SELECT your character."
             color="white"
             align="center"
-            width="0.3"
-            position="0 0.5 -1.5"
+            width="1"
+            position="0 0.5 -30"
         ></a-text>
     </a-entity>
     
@@ -135,7 +136,7 @@
             id="mage-model"
             src="#mage-model-asset"
             scale="75 75 75"        rotation="-90 0 0"
-            position="50 0 0.5"          visible="false"            ></a-gltf-model>
+            position="100 0 0.5"          visible="false"            ></a-gltf-model>
     </a-nft>
 
 
@@ -149,9 +150,9 @@
         <a-gltf-model
             id="warrior-model"
             src="#warrior-model-asset"
-            scale="75 75 75"
+            scale="50 59 59"
             rotation="-90 0 0"
-            position="50 0 30"
+            position="70 0 10"
             visible="false"
         ></a-gltf-model>
     </a-nft>
